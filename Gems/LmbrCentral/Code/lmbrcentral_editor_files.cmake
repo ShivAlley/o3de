@@ -51,6 +51,8 @@ set(FILES
     Source/Shape/EditorBoxShapeComponent.cpp
     Source/Shape/EditorAxisAlignedBoxShapeComponent.h
     Source/Shape/EditorAxisAlignedBoxShapeComponent.cpp
+    Source/Shape/EditorAxisAlignedBoxShapeComponentMode.h
+    Source/Shape/EditorAxisAlignedBoxShapeComponentMode.cpp
     Source/Shape/EditorCylinderShapeComponent.h
     Source/Shape/EditorCylinderShapeComponent.cpp
     Source/Shape/EditorCapsuleShapeComponent.h
@@ -107,12 +109,6 @@ set(FILES
     Source/Builders/CopyDependencyBuilder/XmlBuilderWorker/XmlBuilderWorker.h
     Source/Builders/CopyDependencyBuilder/XmlFormattedAssetBuilderWorker.cpp
     Source/Builders/CopyDependencyBuilder/XmlFormattedAssetBuilderWorker.h
-    Source/Builders/DependencyBuilder/DependencyBuilderComponent.cpp
-    Source/Builders/DependencyBuilder/DependencyBuilderComponent.h
-    Source/Builders/DependencyBuilder/DependencyBuilderWorker.cpp
-    Source/Builders/DependencyBuilder/DependencyBuilderWorker.h
-    Source/Builders/DependencyBuilder/SeedBuilderWorker/SeedBuilderWorker.cpp
-    Source/Builders/DependencyBuilder/SeedBuilderWorker/SeedBuilderWorker.h
     Source/Builders/LevelBuilder/LevelBuilderComponent.cpp
     Source/Builders/LevelBuilder/LevelBuilderComponent.h
     Source/Builders/LevelBuilder/LevelBuilderWorker.cpp

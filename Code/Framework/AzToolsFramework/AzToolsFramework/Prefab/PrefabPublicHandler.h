@@ -28,6 +28,7 @@ namespace AzToolsFramework
         class Instance;
         class InstanceEntityMapperInterface;
         class InstanceToTemplateInterface;
+        class InstanceDomGeneratorInterface;
         class PrefabLoaderInterface;
         class PrefabSystemComponentInterface;
 
@@ -42,12 +43,11 @@ namespace AzToolsFramework
             void UnregisterPrefabPublicHandlerInterface();
 
             // PrefabPublicInterface...
-            CreatePrefabResult CreatePrefabInDisk(
-                const EntityIdList& entityIds, AZ::IO::PathView filePath) override;
-            CreatePrefabResult CreatePrefabInMemory(
-                const EntityIdList& entityIds, AZ::IO::PathView filePath) override;
+            CreatePrefabResult CreatePrefabInDisk(const EntityIdList& entityIds, AZ::IO::PathView filePath) override;
+            CreatePrefabResult CreatePrefabAndSaveToDisk(const EntityIdList& entityIds, AZ::IO::PathView filePath) override;
+            CreatePrefabResult CreatePrefabInMemory(const EntityIdList& entityIds, AZ::IO::PathView filePath) override;
             InstantiatePrefabResult InstantiatePrefab(
-                AZStd::string_view filePath, AZ::EntityId parent, const AZ::Vector3& position) override;
+                AZStd::string_view filePath, AZ::EntityId parentId, const AZ::Vector3& position) override;
             PrefabOperationResult SavePrefab(AZ::IO::Path filePath) override;
             PrefabEntityResult CreateEntity(AZ::EntityId parentId, const AZ::Vector3& position) override;
             
@@ -198,6 +198,7 @@ namespace AzToolsFramework
 
             InstanceEntityMapperInterface* m_instanceEntityMapperInterface = nullptr;
             InstanceToTemplateInterface* m_instanceToTemplateInterface = nullptr;
+            InstanceDomGeneratorInterface* m_instanceDomGeneratorInterface = nullptr;
             PrefabFocusInterface* m_prefabFocusInterface = nullptr;
             PrefabFocusPublicInterface* m_prefabFocusPublicInterface = nullptr;
             PrefabLoaderInterface* m_prefabLoaderInterface = nullptr;

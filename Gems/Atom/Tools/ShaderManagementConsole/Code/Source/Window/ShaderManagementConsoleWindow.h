@@ -29,6 +29,9 @@ namespace ShaderManagementConsole
         // AtomToolsFramework::AtomToolsDocumentNotificationBus::Handler overrides...
         void OnDocumentOpened(const AZ::Uuid& documentId) override;
 
+        // AtomToolsFramework::AtomToolsDocumentMainWindow overrides...
+        AZStd::string GetSaveDocumentParams(const AZStd::string& initialPath, const AZ::Uuid& documentId) const override;
+
     private:
         AtomToolsFramework::AtomToolsDocumentInspector* m_documentInspector = {};
     };

@@ -33,6 +33,7 @@
 #include <AzToolsFramework/AssetBrowser/AssetBrowserComponent.h>
 #include <AzToolsFramework/SourceControl/PerforceComponent.h>
 #include <AzToolsFramework/Prefab/PrefabSystemComponent.h>
+#include <Metadata/MetadataManager.h>
 
 namespace AssetProcessor
 {
@@ -60,6 +61,7 @@ namespace AssetProcessor
         : public AzFramework::LogComponent
     {
     public:
+        AZ_CLASS_ALLOCATOR(FilteredLogComponent, AZ::SystemAllocator)
         void OutputMessage(AzFramework::LogFile::SeverityLevel severity, const char* window, const char* message) override
         {
             // if we receive an exception it means we are likely to crash.  in that case, even if it occurred in a job thread
@@ -155,6 +157,7 @@ AZ::ComponentTypeList AssetProcessorAZApplication::GetRequiredSystemComponents()
     components.push_back(azrtti_typeid<AzToolsFramework::PerforceComponent>());
     components.push_back(azrtti_typeid<AzToolsFramework::Prefab::PrefabSystemComponent>());
     components.push_back(azrtti_typeid<AzToolsFramework::ArchiveComponent>()); // AP manages compressed files using ArchiveComponent
+    components.push_back(azrtti_typeid<AzToolsFramework::MetadataManager>());
 
     return components;
 }

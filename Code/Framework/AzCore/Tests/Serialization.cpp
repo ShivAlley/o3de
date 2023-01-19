@@ -1152,18 +1152,18 @@ namespace AZ {
                 return 1;
             }
 
-            const Uuid& GetTemplatedTypeId(size_t element) override
+            AZ::TypeId GetTemplatedTypeId(size_t element) override
             {
                 (void)element;
                 return SerializeGenericTypeInfo<GenericClass>::GetClassTypeId();
             }
 
-            const Uuid& GetSpecializedTypeId() const override
+            AZ::TypeId GetSpecializedTypeId() const override
             {
                 return azrtti_typeid<GenericClass>();
             }
 
-            const Uuid& GetGenericTypeId() const override
+            AZ::TypeId GetGenericTypeId() const override
             {
                 return TYPEINFO_Uuid();
             }
@@ -1181,7 +1181,7 @@ namespace AZ {
             return static_cast<ClassInfoType*>(GetCurrentSerializeContextModule().CreateGenericClassInfo<GenericClass>());
         }
 
-        static const Uuid& GetClassTypeId()
+        static AZ::TypeId GetClassTypeId()
         {
             return GetGenericInfo()->GetClassData()->m_typeId;
         }
@@ -1216,18 +1216,18 @@ namespace AZ {
                 return 1;
             }
 
-            const Uuid& GetTemplatedTypeId(size_t element) override
+            AZ::TypeId GetTemplatedTypeId(size_t element) override
             {
                 (void)element;
                 return SerializeGenericTypeInfo<GenericClass>::GetClassTypeId();
             }
 
-            const Uuid& GetSpecializedTypeId() const override
+            AZ::TypeId GetSpecializedTypeId() const override
             {
                 return azrtti_typeid<GenericChild>();
             }
 
-            const Uuid& GetGenericTypeId() const override
+            AZ::TypeId GetGenericTypeId() const override
             {
                 return TYPEINFO_Uuid();
             }
@@ -1245,7 +1245,7 @@ namespace AZ {
             return static_cast<ClassInfoType*>(GetCurrentSerializeContextModule().CreateGenericClassInfo<GenericChild>());
         }
 
-        static const Uuid& GetClassTypeId()
+        static AZ::TypeId GetClassTypeId()
         {
             return GetGenericInfo()->GetClassData()->m_typeId;
         }
@@ -1261,7 +1261,7 @@ namespace UnitTest
     * Base class for all serialization unit tests
     */
     class Serialization
-        : public ScopedAllocatorSetupFixture
+        : public LeakDetectionFixture
         , public ComponentApplicationBus::Handler
     {
     public:
@@ -1808,7 +1808,7 @@ namespace UnitTest
         AZStd::vector<int*> vectorOfIntPointers;
 
         vectorOfInts.push_back(5);
-        vectorOfIntPointers.push_back(azcreate(int, (5), AZ::SystemAllocator, "Container Int Pointer"));
+        vectorOfIntPointers.push_back(azcreate(int, (5), AZ::SystemAllocator));
 
         // Write Vector of Int to object stream
         AZStd::vector<char> vectorIntBuffer;
@@ -2046,7 +2046,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
         AssociativePtrContainer testObj;
         testObj.m_setOfPointers.insert(aznew AZ::Entity("Entity1"));
         testObj.m_setOfPointers.insert(aznew AZ::Entity("Entity2"));
-        testObj.m_mapOfFloatPointers.emplace(5, azcreate(float, (3.14f), AZ::SystemAllocator, "Bob the Float"));
+        testObj.m_mapOfFloatPointers.emplace(5, azcreate(float, (3.14f), AZ::SystemAllocator));
         testObj.m_sharedEntityPointer.reset(aznew AZ::Entity("Entity3"));
 
         // XML
@@ -2267,7 +2267,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
             return classElement.Convert<SimpleDerivedClass2>(context);
         };
 
-        sc.ClassDeprecate("SimpleDerivedClass1", "{78632262-C303-49BC-ABAD-88B088098311}", converter);
+        sc.ClassDeprecate("SimpleDerivedClass1", AZ::Uuid("{78632262-C303-49BC-ABAD-88B088098311}"), converter);
 
         auto cb = [](void* classPtr, const Uuid& classId, SerializeContext* /*context*/) -> void
         {
@@ -2426,7 +2426,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
                     // Test deprecation with one member class marked as deprecated
                     {
                         SerializeContext sc;
-                        sc.ClassDeprecate("DeprecatedClass", "{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}");
+                        sc.ClassDeprecate("DeprecatedClass", AZ::Uuid("{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}"));
                         sc.Class<DeprecationTestClass>()
                             ->Version(2)
                             ->Field("m_deprecated", &DeprecationTestClass::m_deprecated)
@@ -2469,7 +2469,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
                             return classElement.Convert<DeprecationTestClass>(context);
                         };
 
-                        sc.ClassDeprecate("DeprecatedClass", "{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}", converter);
+                        sc.ClassDeprecate("DeprecatedClass", AZ::Uuid("{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}"), converter);
 
                         // XML
                         AZ_TracePrintf("SerializeDeprecationTest", "Loading XML with deprecated class\n");
@@ -2655,7 +2655,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
                     // Test deprecation
                     {
                         SerializeContext sc;
-                        sc.ClassDeprecate("DeprecatedClass", "{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}");
+                        sc.ClassDeprecate("DeprecatedClass", AZ::Uuid("{893CA46E-6D1A-4D27-94F7-09E26DE5AE4B}"));
 
                         ObjectStream::ClassReadyCB readyCB(AZStd::bind(&DeprecationTest::CheckDeprecated, this, AZStd::placeholders::_1, AZStd::placeholders::_2));
 
@@ -2902,7 +2902,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
     * DynamicSerializableFieldTest
     */
     class SerializeDynamicSerializableFieldTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
 
@@ -3237,7 +3237,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
         ClonableAssociativePointerContainer testObj;
         testObj.m_setOfPointers.insert(aznew AZ::Entity("Entity1"));
         testObj.m_setOfPointers.insert(aznew AZ::Entity("Entity2"));
-        testObj.m_mapOfFloatPointers.emplace(5, azcreate(float, (3.14f), AZ::SystemAllocator, "Frank the Float"));
+        testObj.m_mapOfFloatPointers.emplace(5, azcreate(float, (3.14f), AZ::SystemAllocator));
         testObj.m_sharedEntityPointer.reset(aznew AZ::Entity("Entity3"));
 
         ClonableAssociativePointerContainer* cloneObj = m_serializeContext->CloneObject(&testObj);
@@ -3405,13 +3405,13 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
     };
 
     class SerializeAssetFixture
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
 
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AllocatorInstance<PoolAllocator>::Create();
             AllocatorInstance<ThreadPoolAllocator>::Create();
@@ -3452,7 +3452,7 @@ TEST_F(SerializeBasicTest, BasicTypeTest_Succeed)
             AllocatorInstance<ThreadPoolAllocator>::Destroy();
             AllocatorInstance<PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
 
@@ -4525,11 +4525,11 @@ namespace UnitTest
             toSerialize.m_data = false;
 
             // Test save once, read once.
-            AZStd::string filePath = GetTestFolderPath() + "FileUtilsTest";
-            bool success = AZ::Utils::SaveObjectToFile(filePath, streamType, &toSerialize);
+            AZ::IO::Path filePath = GetTestFolderPath() / "FileUtilsTest";
+            bool success = AZ::Utils::SaveObjectToFile(filePath.Native(), streamType, &toSerialize);
             EXPECT_TRUE(success);
 
-            BaseRtti* deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath);
+            BaseRtti* deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath.Native());
             EXPECT_TRUE(deserialized);
             EXPECT_EQ( toSerialize.m_data, deserialized->m_data );
             delete deserialized;
@@ -4537,12 +4537,12 @@ namespace UnitTest
 
             // Test save twice, read once.
             // This is valid with files because saving a file again will overwrite it. Note that streams function differently.
-            success = AZ::Utils::SaveObjectToFile(filePath, streamType, &toSerialize);
+            success = AZ::Utils::SaveObjectToFile(filePath.Native(), streamType, &toSerialize);
             EXPECT_TRUE(success);
-            success = AZ::Utils::SaveObjectToFile(filePath, streamType, &toSerialize);
+            success = AZ::Utils::SaveObjectToFile(filePath.Native(), streamType, &toSerialize);
             EXPECT_TRUE(success);
 
-            deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath);
+            deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath.Native());
             EXPECT_TRUE(deserialized);
             EXPECT_EQ( toSerialize.m_data, deserialized->m_data );
             delete deserialized;
@@ -4550,8 +4550,8 @@ namespace UnitTest
 
             // Test reading from an invalid file. The system should return 'nullptr' when given a bad file path.
             AZ::IO::SystemFile::Delete(filePath.c_str());
-            deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath);
-            EXPECT_EQ( nullptr, deserialized );
+            deserialized = AZ::Utils::LoadObjectFromFile<BaseRtti>(filePath.Native());
+            EXPECT_EQ(nullptr, deserialized);
         }
 
         TestFileIOBase m_fileIO;
@@ -4584,7 +4584,7 @@ namespace UnitTest
     *
     */
     class SerializeDescendentDataElementTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         struct DataElementTestClass
@@ -4603,7 +4603,7 @@ namespace UnitTest
 
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             m_dataElementClass = AZStd::make_unique<DataElementTestClass>();
         }
@@ -4612,7 +4612,7 @@ namespace UnitTest
         {
             m_dataElementClass.reset(); // reset it before the allocators are destroyed
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
         static bool VersionConverter(AZ::SerializeContext& sc, AZ::SerializeContext::DataElementNode& classElement)
@@ -4697,7 +4697,7 @@ namespace UnitTest
     }
 
     class SerializeDataElementNodeTreeTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         struct EntityWrapperTest
@@ -4737,14 +4737,14 @@ namespace UnitTest
 
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
             SerializeDataElementNodeTreeTest::m_wrappedBuffer = AZStd::make_unique<AZStd::vector<AZ::u8>>();
         }
 
         void TearDown() override
         {
             SerializeDataElementNodeTreeTest::m_wrappedBuffer.reset();
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
         static bool GetDataHierachyVersionConverter(AZ::SerializeContext& sc, AZ::SerializeContext::DataElementNode& rootElement)
@@ -5110,7 +5110,7 @@ namespace UnitTest
     }
 
     class SerializeDataElementNodeGetDataTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         struct TemporarilyReflected
@@ -5128,16 +5128,6 @@ namespace UnitTest
 
             TemporarilyReflected m_tempReflected;
         };
-
-        void SetUp() override
-        {
-            AllocatorsFixture::SetUp();
-        }
-
-        void TearDown() override
-        {
-            AllocatorsFixture::TearDown();
-        }
 
         static bool GetDataOnNonReflectedClassVersionConverter(AZ::SerializeContext& sc, AZ::SerializeContext::DataElementNode& rootElement)
         {
@@ -5205,7 +5195,7 @@ namespace UnitTest
     }
 
     class SerializableAnyFieldTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         struct AnyMemberClass
@@ -5227,7 +5217,7 @@ namespace UnitTest
         // We must expose the class for serialization first.
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -5264,7 +5254,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
         struct ReflectedString
         {
@@ -5609,7 +5599,7 @@ namespace UnitTest
     }
 
     class SerializableOptionalFixture
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         struct OptionalMemberClass
@@ -5631,7 +5621,7 @@ namespace UnitTest
         // We must expose the class for serialization first.
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -5650,7 +5640,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
     protected:
         AZStd::unique_ptr<SerializeContext> m_serializeContext;
@@ -5747,12 +5737,12 @@ namespace UnitTest
 
 
     class ObjectStreamSerialization
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -5772,7 +5762,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
         struct TemplateInstantiationReflectedWrapper
         {
@@ -6466,7 +6456,7 @@ namespace UnitTest
             ->Field("m_value", &AggregateTestClassV2::m_value)
             ;
 
-        m_serializeContext->ClassDeprecate("EmptyDeprecatedClass", "{73890A64-9ADB-4639-B0E0-93294CE81B19}",
+        m_serializeContext->ClassDeprecate("EmptyDeprecatedClass", AZ::Uuid("{73890A64-9ADB-4639-B0E0-93294CE81B19}"),
             [](AZ::SerializeContext& context, AZ::SerializeContext::DataElementNode& rootElementNode) -> bool
         {
             rootElementNode.Convert<ConvertedNewClass>(context);
@@ -6482,7 +6472,7 @@ namespace UnitTest
         m_serializeContext->EnableRemoveReflection();
         m_serializeContext->Class<ConvertedNewClass>();
         m_serializeContext->Class<AggregateTestClassV2>();
-        m_serializeContext->ClassDeprecate("EmptyDeprecatedClass", "{73890A64-9ADB-4639-B0E0-93294CE81B19}",
+        m_serializeContext->ClassDeprecate("EmptyDeprecatedClass", AZ::Uuid("{73890A64-9ADB-4639-B0E0-93294CE81B19}"),
             [](AZ::SerializeContext&, AZ::SerializeContext::DataElementNode&) -> bool
         {
             return true;
@@ -6593,12 +6583,12 @@ namespace UnitTest
     }
 
     class GenericClassInfoExplicitReflectFixture
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -6651,7 +6641,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
     protected:
@@ -6721,12 +6711,12 @@ namespace UnitTest
     }
 
     class GenericClassInfoInheritanceFixture
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -6746,7 +6736,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
         class StringUtils : public AZStd::string
@@ -6794,7 +6784,7 @@ namespace UnitTest
     }
 
     class SerializableTupleTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         using FloatStringIntTuple = std::tuple<float, AZStd::string, int>;
@@ -6807,7 +6797,7 @@ namespace UnitTest
         // We must expose the class for serialization first.
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -6897,7 +6887,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
     protected:
@@ -7034,7 +7024,7 @@ namespace UnitTest
     }
 
     class SerializableAZStdArrayTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         using ZeroArray = AZStd::array<float, 0>;
@@ -7044,7 +7034,7 @@ namespace UnitTest
         // We must expose the class for serialization first.
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -7102,7 +7092,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
     protected:
@@ -7387,13 +7377,13 @@ namespace UnitTest
     }
 
     class SerializeVectorWithInitialElementsTest
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         // We must expose the class for serialization first.
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -7409,7 +7399,7 @@ namespace UnitTest
             AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
             AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
         struct VectorWrapper
@@ -7805,7 +7795,7 @@ namespace UnitTest
         DataType::Reflect(*this->GetSerializeContext());
 
         // Add 3 items to the container
-        typename TypeParam::iterator insertIter{};
+        [[maybe_unused]] typename TypeParam::iterator insertIter{};
         if constexpr (AZStd::same_as<TypeParam, AZStd::forward_list<int>>)
         {
             insertIter = this->m_holder.m_data.before_begin();
@@ -7924,19 +7914,19 @@ namespace UnitTest
     };
 
     class EnumTypeSerialization
-        : public ScopedAllocatorSetupFixture
+        : public LeakDetectionFixture
     {
     public:
         void SetUp() override
         {
-            ScopedAllocatorSetupFixture::SetUp();
+            LeakDetectionFixture::SetUp();
             m_serializeContext = AZStd::make_unique<AZ::SerializeContext>();
         }
 
         void TearDown() override
         {
             m_serializeContext.reset();
-            ScopedAllocatorSetupFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
     protected:
@@ -8256,16 +8246,10 @@ namespace UnitTest
 
     template <typename ParamType>
     class PathSerializationParamFixture
-        : public ScopedAllocatorSetupFixture
+        : public LeakDetectionFixture
         , public ::testing::WithParamInterface<ParamType>
     {
     public:
-        PathSerializationParamFixture()
-            : ScopedAllocatorSetupFixture(
-                []() { AZ::SystemAllocator::Descriptor desc; desc.m_stackRecordLevels = 30; return desc; }()
-            )
-        {}
-
         // We must expose the class for serialization first.
         void SetUp() override
         {

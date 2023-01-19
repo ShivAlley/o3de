@@ -58,6 +58,11 @@ namespace PhysX
             const JointComponentConfiguration& configuration,
             const JointGenericProperties& genericProperties,
             const JointLimitProperties& limitProperties);
+        JointComponent(
+            const JointComponentConfiguration& configuration,
+            const JointGenericProperties& genericProperties,
+            const JointLimitProperties& limitProperties,
+            const JointMotorProperties& motorProperties);
 
     protected:
         /// Struct to provide subclasses with native pointers during joint initialization.
@@ -94,10 +99,13 @@ namespace PhysX
         /// Issues warnings for invalid scenarios when initializing a joint from entity IDs.
         void WarnInvalidJointSetup(AZ::EntityId entityId, const AZStd::string& message);
 
+        /// Issues info messages for potentially invalid scenarios when initializing a joint from entity IDs.
+        void PrintJointSetupMessage(AZ::EntityId entityId, const AZStd::string& message);
 
         JointComponentConfiguration m_configuration;
         JointGenericProperties m_genericProperties;
         JointLimitProperties m_limits;
+        JointMotorProperties m_motor;
         AzPhysics::JointHandle m_jointHandle = AzPhysics::InvalidJointHandle;
         AzPhysics::SceneHandle m_jointSceneOwner = AzPhysics::InvalidSceneHandle;
     };

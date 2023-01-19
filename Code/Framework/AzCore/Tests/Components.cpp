@@ -23,6 +23,7 @@
 #include <AzCore/IO/SystemFile.h>
 
 #include <AzCore/Memory/AllocationRecords.h>
+#include <AzCore/Memory/IAllocator.h>
 #include <AzCore/UnitTest/TestTypes.h>
 
 #include <AzCore/std/parallel/containers/concurrent_unordered_set.h>
@@ -36,50 +37,49 @@
 using namespace AZ;
 using namespace AZ::Debug;
 
-// This test needs to be outside of a fixture, as it needs to bring up its own allocators
-TEST(ComponentApplication, Test)
-{
-    ComponentApplication app;
-
-    //////////////////////////////////////////////////////////////////////////
-    // Create application environment code driven
-    ComponentApplication::Descriptor appDesc;
-    appDesc.m_memoryBlocksByteSize = 10 * 1024 * 1024;
-    appDesc.m_recordingMode = AllocationRecords::RECORD_FULL;
-    appDesc.m_stackRecordLevels = 20;
-    Entity* systemEntity = app.Create(appDesc);
-
-    systemEntity->CreateComponent<MemoryComponent>();
-    systemEntity->CreateComponent<StreamerComponent>();
-    systemEntity->CreateComponent("{CAE3A025-FAC9-4537-B39E-0A800A2326DF}"); // JobManager component
-    systemEntity->CreateComponent("{D5A73BCC-0098-4d1e-8FE4-C86101E374AC}"); // AssetDatabase component
-
-    systemEntity->Init();
-    systemEntity->Activate();
-
-    app.Destroy();
-    //////////////////////////////////////////////////////////////////////////
-
-    //////////////////////////////////////////////////////////////////////////
-    // Create application environment data driven
-    systemEntity = app.Create(appDesc);
-    systemEntity->Init();
-    systemEntity->Activate();
-    app.Destroy();
-    //////////////////////////////////////////////////////////////////////////
-}
-
 namespace UnitTest
 {
     class Components
-        : public AllocatorsFixture
+        : public LeakDetectionFixture
     {
     public:
         Components()
-            : AllocatorsFixture()
+            : LeakDetectionFixture()
         {
         }
     };
+
+    TEST_F(Components, Test)
+    {
+        ComponentApplication app;
+
+        //////////////////////////////////////////////////////////////////////////
+        // Create application environment code driven
+        ComponentApplication::Descriptor appDesc;
+        appDesc.m_memoryBlocksByteSize = 10 * 1024 * 1024;
+        appDesc.m_recordingMode = AllocationRecords::RECORD_FULL;
+        Entity* systemEntity = app.Create(appDesc);
+
+        systemEntity->CreateComponent<MemoryComponent>();
+        systemEntity->CreateComponent<StreamerComponent>();
+        systemEntity->CreateComponent(AZ::Uuid("{CAE3A025-FAC9-4537-B39E-0A800A2326DF}")); // JobManager component
+        systemEntity->CreateComponent(AZ::Uuid("{D5A73BCC-0098-4d1e-8FE4-C86101E374AC}")); // AssetDatabase component
+
+        systemEntity->Init();
+        systemEntity->Activate();
+
+        app.Destroy();
+        //////////////////////////////////////////////////////////////////////////
+
+        //////////////////////////////////////////////////////////////////////////
+        // Create application environment data driven
+        systemEntity = app.Create(appDesc);
+        systemEntity->Init();
+        systemEntity->Activate();
+        app.Destroy();
+
+        //////////////////////////////////////////////////////////////////////////
+    }
 
     //////////////////////////////////////////////////////////////////////////
     // Some component message bus, this is not really part of the component framework
@@ -605,7 +605,7 @@ namespace UnitTest
     protected:
         void SetUp() override
         {
-            AllocatorsFixture::SetUp();
+            LeakDetectionFixture::SetUp();
 
             // component descriptors are cleaned up when application shuts down
             m_descriptorComponentA = aznew ComponentADescriptor;
@@ -645,7 +645,7 @@ namespace UnitTest
             delete m_entity;
             delete m_componentApp;
 
-            AllocatorsFixture::TearDown();
+            LeakDetectionFixture::TearDown();
         }
 
         void CreateComponents_ABCDE()
@@ -1064,6 +1064,7 @@ namespace UnitTest
     {
         AZ::Test::ScopedAutoTempDirectory m_tempDir;
     public:
+        AZ_CLASS_ALLOCATOR(UserSettingsTestApp, SystemAllocator)
         AZStd::string ResolveFilePath(u32 providerId) override
         {
             auto filePath = AZ::IO::Path(m_tempDir.GetDirectory());
@@ -1102,7 +1103,8 @@ namespace UnitTest
         int m_intOption1;
     };
 
-    TEST(UserSettings, Test)
+    using UserSettingsTestFixture = UnitTest::LeakDetectionFixture;
+    TEST_F(UserSettingsTestFixture, Test)
     {
         UserSettingsTestApp app;
 
@@ -1423,6 +1425,7 @@ namespace UnitTest
     class ConfigurableComponentConfig : public ComponentConfig
     {
     public:
+        AZ_CLASS_ALLOCATOR(ConfigurableComponentConfig , SystemAllocator)
         AZ_RTTI(ConfigurableComponentConfig, "{109C5A93-5571-4D45-BD2F-3938BF63AD83}", ComponentConfig);
 
         int m_intVal = 0;
@@ -1624,6 +1627,7 @@ namespace UnitTest
         : public ComponentConfig
     {
     public:
+        AZ_CLASS_ALLOCATOR(HydraConfigV1, SystemAllocator)
         AZ_RTTI(HydraConfigV1, "{02198FDB-5CDB-4983-BC0B-CF1AA20FF2AF}", ComponentConfig);
 
         int m_numHeads = 1;
@@ -1634,6 +1638,7 @@ namespace UnitTest
         : public HydraConfigV1
     {
     public:
+        AZ_CLASS_ALLOCATOR(HydraConfigV2, SystemAllocator)
         AZ_RTTI(HydraConfigV2, "{BC68C167-6B01-489C-8415-626455670C34}", HydraConfigV1);
 
         int m_numArms = 2; // now the hydra has multiple arms, as well as multiple heads
@@ -1644,6 +1649,7 @@ namespace UnitTest
         : public ComponentConfig
     {
     public:
+        AZ_CLASS_ALLOCATOR(HydraConfigV3, SystemAllocator)
         AZ_RTTI(HydraConfigV3, "{71C41829-AA51-4179-B8B4-3C278CBB26AA}", ComponentConfig);
 
         int m_numHeads = 1;

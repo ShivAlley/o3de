@@ -6,8 +6,8 @@
  *
  */
 
-
 #include <AssetBuilderSDK/AssetBuilderSDK.h>
+#include <AssetBuilderSDK/SerializationDependencies.h>
 #include <AzCore/Asset/AssetManager.h>
 #include <AzCore/Asset/AssetSerializer.h>
 #include <AzCore/Component/Component.h>
@@ -18,12 +18,13 @@
 #include <AzTest/AzTest.h>
 #include <Builder/ScriptCanvasBuilderWorker.h>
 
-#include "ScriptCanvas/Asset/RuntimeAsset.h"
-#include "AssetBuilderSDK/SerializationDependencies.h"
+#include <ScriptCanvas/Core/GraphData.h>
+#include <ScriptCanvas/Asset/RuntimeAsset.h>
 
 struct MockAsset
     : public AZ::Data::AssetData
 {
+    AZ_CLASS_ALLOCATOR(MockAsset, AZ::SystemAllocator)
     AZ_RTTI(MockAsset, "{D1E5A5DA-89D3-4B1F-8194-3E84CA6991DF}", AZ::Data::AssetData);
 
     static void Reflect(AZ::ReflectContext* reflection)
@@ -66,7 +67,7 @@ struct MockAssetRefComponent
 };
 
 class ScriptCanvasBuilderTests
-    : public UnitTest::AllocatorsFixture
+    : public UnitTest::LeakDetectionFixture
     , public AZ::ComponentApplicationBus::Handler
 {
 protected:
@@ -97,7 +98,7 @@ protected:
 
     void SetUp() override
     {
-        UnitTest::AllocatorsFixture::SetUp();
+        UnitTest::LeakDetectionFixture::SetUp();
 
         AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
         AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
@@ -134,7 +135,7 @@ protected:
         AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
         AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
 
-        UnitTest::AllocatorsFixture::TearDown();
+        UnitTest::LeakDetectionFixture::TearDown();
     }
 
     AZ::SerializeContext* m_serializeContext = nullptr;

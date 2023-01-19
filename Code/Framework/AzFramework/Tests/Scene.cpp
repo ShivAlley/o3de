@@ -36,6 +36,7 @@ namespace SceneUnitTest
     class TestComponentConfig : public AZ::ComponentConfig
     {
     public:
+        AZ_CLASS_ALLOCATOR(TestComponentConfig, AZ::SystemAllocator)
         AZ_RTTI(TestComponentConfig, "{DCD12D72-3BFE-43A9-9679-66B745814CAF}", ComponentConfig);
 
         typedef void(*ActivateFunction)(TestComponent* component);
@@ -45,7 +46,7 @@ namespace SceneUnitTest
         DeactivateFunction m_deactivateFunction = nullptr;
     };
 
-    static const AZ::TypeId TestComponentTypeId = "{DC096267-4815-47D1-BA23-A1CDF0D72D9D}";
+    static constexpr AZ::TypeId TestComponentTypeId{ "{DC096267-4815-47D1-BA23-A1CDF0D72D9D}" };
     class TestComponent : public AZ::Component
     {
     public:
@@ -95,7 +96,7 @@ namespace SceneUnitTest
     // Fixture that creates a bare-bones app with only the system components necesary.
 
     class SceneTest
-        : public UnitTest::ScopedAllocatorSetupFixture
+        : public UnitTest::LeakDetectionFixture
     {
     public:
         void SetUp() override
